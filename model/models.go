@@ -31,7 +31,7 @@ type Comment struct {
 type User struct {
 	Id            int64  `json:"id,omitempty"`
 	Name          string `json:"name,omitempty"`
-	FollowCount   int64  `json:"follow_count,omitempty"`
-	FollowerCount int64  `json:"follower_count,omitempty"`
-	IsFollow      bool   `json:"is_follow,omitempty"`
+	FollowCount   int64  `json:"follow_count"`   //零值也不希望被忽略
+	FollowerCount int64  `json:"follower_count"` //零值也不希望被忽略
+	IsFollow      bool   `json:"is_follow"`      //零值也不希望被忽略
 }
