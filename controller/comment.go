@@ -13,13 +13,21 @@ type CommentListResponse struct {
 
 // CommentAction no practical effect, just check if token is valid
 func CommentAction(c *gin.Context) {
-	token := c.Query("token")
 
-	if _, exist := usersLoginInfo[token]; exist {
-		c.JSON(http.StatusOK, model.Response{StatusCode: 0})
-	} else {
-		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-	}
+	//var requestUser=model.User{}
+	//_=c.Bind(&requestUser)
+	////获取参数
+	//telephone:=requestUser.Telephone
+	//password:=requestUser.Password
+	//
+	//token := c.Query("token")
+	//
+
+	//if _, exist := usersLoginInfo[token]; exist {
+	//	c.JSON(http.StatusOK, model.Response{StatusCode: 0})
+	//} else {
+	//	c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+	//}
 
 }
 
