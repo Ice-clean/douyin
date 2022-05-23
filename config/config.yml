@@ -1,19 +1,19 @@
-#mysql:
-#  addr: 119.91.208.25:3306
-#  user: douyin
-#  passwd: douyin
-#  db-name: douyin
-
 mysql:
-  addr: 127.0.0.1:3306
-  user: root
-  passwd: root
+  addr: 119.91.208.25:3306
+  user: douyin
+  passwd: douyin
   db-name: douyin
 
-#redis:
-#  addr: 119.91.208.25:6000
-#  passwd: hanbing
+#mysql:
+#  addr: 127.0.0.1:3306
+#  user: root
+#  passwd: root
+#  db-name: douyin
 
 redis:
-  addr: 127.0.0.1:6379
-#  passwd: hanbing
+  addr: 119.91.208.25:6000
+  passwd: hanbing
+
+#redis:
+#  addr: 127.0.0.1:6379
+##  passwd: hanbing

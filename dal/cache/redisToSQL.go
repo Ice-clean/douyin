@@ -42,12 +42,11 @@ func redisToSQL() {
 		userId, _ := strconv.ParseInt(user, 10, 64)
 		result, _ := db.Redis.Get(data).Result()
 		tag, _ := strconv.Atoi(result)
-		favorites =
-			append(favorites, db.Favorite{
-				UserId:  userId,
-				VideoID: videoId,
-				Tag:     int32(tag),
-			})
+		favorites = append(favorites, db.Favorite{
+			UserId:  userId,
+			VideoID: videoId,
+			Tag:     int32(tag),
+		})
 	}
 	db.DB.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "video_id"}, {Name: "user_id"}},

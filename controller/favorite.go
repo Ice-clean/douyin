@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/RaymondCode/simple-demo/model"
 	"github.com/RaymondCode/simple-demo/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 type FavoriteQuery struct {
@@ -13,6 +13,11 @@ type FavoriteQuery struct {
 	Token      string `form:"token" binding:"required"`
 	VideoId    int64  `form:"video_id" binding:"required"`
 	ActionType int    `form:"actionType" binding:"required"`
+}
+
+type FavoriteListQuery struct {
+	UserId int64  `form:"user_id" binding:"required"`
+	Token  string `form:"token" binding:"required"`
 }
 
 type FavoriteListResponse struct {
@@ -30,7 +35,9 @@ func FavoriteAction(c *gin.Context) {
 		c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "参数不合法"})
 		return
 	}
-	if _, user := usersLoginInfo[p.Token]; !user {
+	userId := strconv.FormatInt(p.UserId, 10)
+	_, err = userService.UserInfo(userId, p.Token)
+	if err != nil {
 		c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "用户未登录！"})
 		return
 	}
@@ -45,11 +52,21 @@ func FavoriteAction(c *gin.Context) {
 
 // FavoriteList all users have same favorite video list
 func FavoriteList(c *gin.Context) {
-	fmt.Println("进来到最爱了")
-	c.JSON(http.StatusOK, model.VideoListResponse{
+	var p FavoriteListQuery
+	err := c.ShouldBindQuery(&p)
+	if err != nil {
+		c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "参数不合法"})
+		return
+	}
+	if _, user := usersLoginInfo[p.Token]; !user {
+		c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "用户未登录！"})
+		return
+	}
+	likeVideoList := favoriteService.GetLikeList(p.UserId)
+	c.JSON(http.StatusOK, FavoriteListResponse{
 		Response: model.Response{
-			StatusCode: 0,
+			StatusCode: 200,
 		},
-		VideoList: DemoVideos,
+		FavoriteList: likeVideoList,
 	})
 }
