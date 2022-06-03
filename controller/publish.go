@@ -28,12 +28,15 @@ func Publish(c *gin.Context) {
 	}
 
 	// 解析用户
-	user, exist := usersLoginInfo[token]
-	if !exist {
-		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "用户不存在"})
-		return
-	}
+	userId := Redis.Get("douyin:" + token)
+	fmt.Printf("用户 Id：%v", userId)
+	//if userId == redis.Nil {
+	//	c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "用户不存在"})
+	//	return
+	//}
+	user, err := userService.UserInfo(userId.Val(), token)
 
+	fmt.Printf("%v", user)
 	// 读取视频
 	data, err := c.FormFile("data")
 	if err != nil {

@@ -28,9 +28,10 @@ func (v *VideoService) GetVideoById(videoId int64) db.Video {
 
 // PublishVideo 发布视频
 // 发布成功则返回 fileName，否则抛出错误 err
-func (v *VideoService) PublishVideo(user model.User, title string, file *multipart.FileHeader) (finalName string, err error) {
+func (v *VideoService) PublishVideo(user *model.User, title string, file *multipart.FileHeader) (finalName string, err error) {
 	// 获取文件名以及生成最终的文件名
 	filename := filepath.Base(file.Filename)
+	fmt.Printf("视频：%v", user)
 	finalName = fmt.Sprintf("%d_%s", user.Id, filename)
 
 	// 设置存放路径，并保存到服务器

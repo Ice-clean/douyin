@@ -58,10 +58,10 @@ func FavoriteList(c *gin.Context) {
 		c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "参数不合法"})
 		return
 	}
-	if _, user := usersLoginInfo[p.Token]; !user {
-		c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "用户未登录！"})
-		return
-	}
+	//if _, user := usersLoginInfo[p.Token]; !user {
+	//	c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "用户未登录！"})
+	//	return
+	//}
 	likeVideoList := favoriteService.GetLikeList(p.UserId)
 	c.JSON(http.StatusOK, FavoriteListResponse{
 		Response: model.Response{

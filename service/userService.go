@@ -30,7 +30,7 @@ func (u *UserService) Register(username string, password string) (userId int64, 
 	}
 	//生成token
 	token, err = utils.GenerateToken(userId, username)
-	Redis.Set(token, userId, 7*24*time.Hour) //存入redis
+	Redis.Set("douyin:"+token, userId, 7*24*time.Hour) //存入redis
 	return
 }
 
@@ -44,8 +44,8 @@ func (u *UserService) Login(username string, password string) (userId int64, tok
 
 	//生成token
 	token, err = utils.GenerateToken(userId, username)
-	Redis.Set(token, userId, 7*24*time.Hour) //存入redis，有效期7天
-	return user.Id, token, err               //登录成功
+	Redis.Set("douyin:"+token, userId, 7*24*time.Hour) //存入redis，有效期7天
+	return user.Id, token, err                         //登录成功
 }
 
 // UserInfo 查看用户信息
