@@ -123,6 +123,39 @@ func (u *UserDao) JudgeFollow(followUserId int64, followedUserId int64) bool {
 	return true //关注了该用户
 }
 
+//关注操作
+func (u *UserDao) UserFollow(userId int64, toUserId int64) (err error) {
+	userFollow := UserFollow{
+		FollowUserId:   userId,
+		FollowedUserId: toUserId,
+	}
+	return DB.Create(&userFollow).Error
+}
+
+//取消关注操作
+func (u *UserDao) UserCancelFollow(userId int64, toUserId int64) (err error) {
+	return DB.Where("follow_user_id = ? AND followed_user_id = ?", userId, toUserId).Delete(UserFollow{}).Error
+}
+func (u *UserDao) FindFollow(userId int64, toUserId int64) UserFollow {
+	var userFollow UserFollow
+	DB.Where("follow_user_id = ? AND followed_user_id = ?", userId, toUserId).Find(&userFollow)
+	return userFollow
+}
+
+//获取关注列表
+func (u *UserDao) FindUserFollow(userId int64) []UserFollow {
+	var userFollows []UserFollow
+	DB.Where("follow_user_id = ?", userId).Find(&userFollows)
+	return userFollows
+}
+
+//获取粉丝列表
+func (u *UserDao) FindUserFollower(userId int64) []UserFollow {
+	var userFollows []UserFollow
+	DB.Where("followed_user_id = ?", userId).Find(&userFollows)
+	return userFollows
+}
+
 // UpdateLastLoginTime 更新用户最后一次的登录时间
 func (u *UserDao) UpdateLastLoginTime(id int64) (err error) {
 	err = DB.Model(&User{}).Where("id = ?", id).Update("last_login", time.Now().UnixMilli()).Error
