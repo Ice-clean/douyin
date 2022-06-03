@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/RaymondCode/simple-demo/controller"
+	"github.com/RaymondCode/simple-demo/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,6 +13,8 @@ func initRouter(r *gin.Engine) {
 	r.Use(gin.Logger()) // 日志
 
 	apiRouter := r.Group("/douyin")
+	// 全局处理异常
+	r.Use(middleware.Recovery())
 
 	// basic apis
 	apiRouter.GET("/feed/", controller.Feed)

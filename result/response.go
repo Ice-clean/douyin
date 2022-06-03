@@ -1,12 +1,19 @@
-package app
+package result
 
+import "C"
 import (
+	"errors"
 	"github.com/RaymondCode/simple-demo/constant"
 	"github.com/gin-gonic/gin"
 )
 
 type Gin struct {
 	C *gin.Context
+}
+
+func (g *Gin) AbortWithStatusJSON() {
+	g.C.Abort()
+	g.OperateResult(errors.New("服务器繁忙，请稍后再试"))
 }
 
 func (g *Gin) OperateResult(err error) {
@@ -18,7 +25,7 @@ func (g *Gin) OperateResult(err error) {
 	} else {
 		g.C.JSON(constant.ERROR, gin.H{
 			"status_code": constant.ERROR,
-			"status_msg":  err,
+			"status_msg":  err.Error(),
 		})
 	}
 	return
@@ -34,7 +41,7 @@ func (g *Gin) AutoResult(err error, data interface{}) {
 	} else {
 		g.C.JSON(constant.ERROR, gin.H{
 			"status_code": constant.ERROR,
-			"status_msg":  err,
+			"status_msg":  err.Error(),
 			"data":        data,
 		})
 	}
