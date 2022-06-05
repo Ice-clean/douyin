@@ -29,9 +29,12 @@ type Comment struct {
 }
 
 type User struct {
-	Id            int64  `json:"id,omitempty"`
-	Name          string `json:"name,omitempty"`
-	FollowCount   int64  `json:"follow_count"`   //零值也不希望被忽略
-	FollowerCount int64  `json:"follower_count"` //零值也不希望被忽略
-	IsFollow      bool   `json:"is_follow"`      //零值也不希望被忽略
+	Id             int64  `json:"id,omitempty"`
+	Name           string `json:"name,omitempty"`
+	FollowCount    int64  `json:"follow_count"`   //零值也不希望被忽略
+	FollowerCount  int64  `json:"follower_count"` //零值也不希望被忽略
+	IsFollow       bool   `json:"is_follow"`      //零值也不希望被忽略
+	Signature      string `json:"signature"`
+	TotalFavorited int64  `json:"total_favorited"`
+	FavoriteCount  int64  `json:"favorite_count"`
 }

@@ -95,6 +95,8 @@ func Login(c *gin.Context) {
 	username := c.Query("username")
 	password := c.Query("password")
 
+	//fmt.Println(strings.Split(c.Request.RequestURI, "?")[0]) //请求uri
+
 	if len(username) <= 0 || len(username) > 32 || len(password) <= 0 || len(password) > 32 { //合法性校验
 		c.JSON(http.StatusOK, UserLoginResponse{
 			Response: model.Response{StatusCode: 1, StatusMsg: "用户名或密码不合法"},
@@ -134,7 +136,7 @@ func UserInfo(c *gin.Context) {
 	userId := c.Query("user_id")
 
 	user, err := userService.UserInfo(userId, token)
-	if err != nil { //查询不到用户
+	if err != nil || user == nil { //查询不到用户
 		c.JSON(http.StatusOK, UserResponse{
 			Response: model.Response{StatusCode: 1, StatusMsg: "用户不存在"},
 		})

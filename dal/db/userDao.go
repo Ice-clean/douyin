@@ -43,9 +43,10 @@ func NewUserDao() *UserDao {
 }
 
 // CreateUser  创建新用户
-func (u *UserDao) CreateUser(username string, password string) (id int64, err error) {
+func (u *UserDao) CreateUser(username string, password string) (us *User, err error) {
 
-	user := User{Username: username,
+	user := User{
+		Username:   username,
 		Password:   password,
 		Name:       "张三",
 		CreateTime: time.Now().UnixMilli(),
@@ -53,7 +54,7 @@ func (u *UserDao) CreateUser(username string, password string) (id int64, err er
 	}
 	//创建对应的用户
 	if err = DB.Create(&user).Error; err != nil {
-		return -1, err
+		return nil, err
 	}
 	fmt.Printf("%#v\n", user)
 
@@ -61,7 +62,7 @@ func (u *UserDao) CreateUser(username string, password string) (id int64, err er
 	userFollowCount := UserFollowCount{Id: user.Id}
 	DB.Create(&userFollowCount)
 
-	return user.Id, err
+	return &user, err
 
 	//db, err := gorm.Open("mysql", "root:root@(127.0.0.1:3306)/douyin?charset=utf8mb4&parseTime=True&loc=Local")
 	//if err != nil {
@@ -80,7 +81,6 @@ func (u *UserDao) FindUserByUsernameAndPassword(username string, password string
 		return nil, err
 	}
 	//登录成功
-	err = u.UpdateLastLoginTime(user.Id) //更新最后一次登录时间
 	return
 }
 
