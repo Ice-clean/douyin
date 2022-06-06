@@ -1,6 +1,5 @@
 package result
 
-import "C"
 import (
 	"errors"
 	"github.com/RaymondCode/simple-demo/constant"

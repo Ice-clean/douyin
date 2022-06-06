@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"github.com/RaymondCode/simple-demo/dal/db"
 	"github.com/RaymondCode/simple-demo/model"
 	"github.com/RaymondCode/simple-demo/service"
 	"github.com/gin-gonic/gin"
@@ -28,7 +29,7 @@ func Publish(c *gin.Context) {
 	}
 
 	// 解析用户
-	userId := Redis.Get("douyin:" + token)
+	userId := db.Redis.Get("douyin:" + token)
 	fmt.Printf("用户 Id：%v", userId)
 	//if userId == redis.Nil {
 	//	c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "用户不存在"})
@@ -60,11 +61,18 @@ func Publish(c *gin.Context) {
 
 // PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
-	// 获取用户 ID
+	// 获取用户 ID 和 token
 	userId := c.Query("user_id")
+	token := c.Query("token")
+
+	if token == "" {
+		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "没有 token"})
+		return
+	}
+
 	// 调用获取投稿服务
 	id, _ := strconv.Atoi(userId)
-	videoList := videoService.GetPublishList(int64(id))
+	videoList := videoService.GetPublishList(int64(id), token)
 
 	fmt.Println("进来到列表了")
 	fmt.Printf("%+v", videoList)

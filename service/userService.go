@@ -158,3 +158,20 @@ func (u *UserService) Logout(token string) {
 func (u *UserService) IsUsernameCanUse(username string) bool {
 	return userDao.FindUserByUsername(username)
 }
+
+// ToUserVO 将 user DO 对象转化为 VO 对象
+func (u *UserService) ToUserVO(userDO db.User) *model.User {
+	//根据id查找用户的关注量与粉丝量
+	var userFollowCount *db.UserFollowCount
+	userFollowCount, _ = userDao.FindCountByID(userDO.Id)
+
+	return &model.User{
+		Id:             userDO.Id,
+		Name:           userDO.Username, //这里先暂且使用 Username
+		FollowCount:    userFollowCount.FollowCount,
+		FollowerCount:  userFollowCount.FollowerCount,
+		Signature:      userDO.PersonalSignature,
+		TotalFavorited: 66,
+		FavoriteCount:  88,
+	}
+}

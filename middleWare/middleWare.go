@@ -1,4 +1,4 @@
-package middleWare
+package middleware
 
 import (
 	"fmt"

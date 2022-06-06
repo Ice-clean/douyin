@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/RaymondCode/simple-demo/dal/db"
 	"github.com/RaymondCode/simple-demo/model"
 	"github.com/RaymondCode/simple-demo/service"
 	"github.com/gin-gonic/gin"
@@ -40,7 +41,7 @@ func FavoriteAction(c *gin.Context) {
 	//	c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "用户未登录！"})
 	//	return
 	//}
-	if _, user := usersLoginInfo[p.Token]; !user {
+	if user := db.Redis.Get(p.Token); user == nil {
 		c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "用户未登录！"})
 		return
 	}

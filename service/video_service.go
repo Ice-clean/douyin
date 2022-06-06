@@ -10,11 +10,15 @@ import (
 	"mime/multipart"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
 type VideoService struct {
 }
+
+// 注入 videoDao
+var videoDao = db.NewVideoDao()
 
 // NewVideoService 创建服务
 func NewVideoService() *VideoService {
@@ -23,7 +27,32 @@ func NewVideoService() *VideoService {
 
 // GetVideoById 通过视频 ID 获取视频对象
 func (v *VideoService) GetVideoById(videoId int64) db.Video {
-	return db.GetVideo(videoId)
+	return videoDao.GetVideoById(videoId)
+}
+
+// GetVideoList 分页获取视频列表（页数存储在缓存中，默认每页数量为 10）
+// 其中 userIP 为请求者的 IP 地址，用来唯一标识用户，获取当前用户正在查看的视频页数
+func (v VideoService) GetVideoList(userIP string) []model.Video {
+	page := 0
+	// 先从缓存中获取当前用户查看的视频页数（没有则默认 0）
+	pageString, err := Redis.HGet(constant.UserVideoPage, userIP).Result()
+	fmt.Println("拿到的值：", pageString)
+	if err == nil && pageString != "" {
+		page, _ = strconv.Atoi(pageString)
+	}
+	// 最后从数据库取出视频列表
+	videoList := videoDao.GetVideoList(page, 10)
+	// 判断是否还有列表
+	if len(videoList) > 0 {
+		// 有的话 page 继续 +1
+		Redis.HSet(constant.UserVideoPage, userIP, page+1)
+	} else {
+		// 没有的话，page 归 0，循环播放
+		Redis.HSet(constant.UserVideoPage, userIP, 0)
+		videoList = videoDao.GetVideoList(page, 10)
+	}
+	// 转化为响应对象然后返回
+	return v.ToVideoVOList(videoList, -1, "")
 }
 
 // PublishVideo 发布视频
@@ -52,37 +81,19 @@ func (v *VideoService) PublishVideo(user *model.User, title string, file *multip
 	video.CoverUrl = fmt.Sprintf("%s/%s/%s", constant.Host, "static", snapshotName)
 
 	// 将视频信息保存到数据库
-	db.CreateVideo(video)
+	videoDao.CreateVideo(video)
 	return
 }
 
 // GetPublishList 获取视频列表，并将 DO 对象转成 VO 对象
-func (v *VideoService) GetPublishList(userId int64) []model.Video {
+func (v *VideoService) GetPublishList(userId int64, token string) []model.Video {
 	// 获取视频列表，并准备转化成投稿列表
-	var videoList = db.GetPublishByUserId(userId)
-	var publishList = make([]model.Video, len(videoList))
-
-	// TODO 获取投稿用户（等用户功能完成）
-	// user := userService.GetUserById(userId)
-	var user model.User
-
-	// 对象转化
-	// favorite := videoService.IsFavorite(user， videoList)
-	for _, v := range videoList {
-		// TODO 判断用户是否点赞本视频
-
-		var favorite bool
-		publishList = append(publishList, model.Video{
-			Id:            v.ID,
-			Author:        user,
-			PlayUrl:       v.PlayUrl,
-			CoverUrl:      v.CoverUrl,
-			FavoriteCount: v.FavoriteCount,
-			CommentCount:  v.CommentCount,
-			IsFavorite:    favorite,
-		})
+	var videoList = videoDao.GetPublishByUserId(userId)
+	for i := range videoList {
+		fmt.Println("第", i, i)
 	}
-	return publishList
+	// 将视频列表转化成响应对象再返回
+	return v.ToVideoVOList(videoList, userId, token)
 }
 
 // getTag 解析标题中的标签，若有标签则去除标题中该标签
@@ -98,4 +109,54 @@ func (v *VideoService) parseTag(title string) string {
 		tagBuilder.Write([]byte(v))
 	}
 	return tagBuilder.String()
+}
+
+// GetRecommend 根据用户情况获取推荐视频并封装成响应对象
+func (v *VideoService) GetRecommend(userId int64, token string) []model.Video {
+	// 获取推荐的视频列表
+	videoList := NewFavoriteService().Recommend(userId)
+	// 将视频列表转化为响应对象再返回
+	return v.ToVideoVOList(videoList, userId, token)
+}
+
+// ToVideoVO 将视频 DO 对象转化为 VO 对象
+func (v *VideoService) ToVideoVO(videoDO db.Video, author model.User, favorite bool) model.Video {
+	return model.Video{
+		Id:            videoDO.ID,
+		Author:        author,
+		PlayUrl:       videoDO.PlayUrl,
+		CoverUrl:      videoDO.CoverUrl,
+		FavoriteCount: videoDO.FavoriteCount,
+		CommentCount:  videoDO.CommentCount,
+		IsFavorite:    favorite,
+	}
+}
+
+// ToVideoVOList 将视频 DO 列表转化成 VO 列表
+func (v *VideoService) ToVideoVOList(videoDOList []db.Video, userId int64, token string) []model.Video {
+	var videoVOList = make([]model.Video, len(videoDOList))
+	userService := NewUserService()
+	// 将视频列表转化为响应对象
+	var favorite bool
+	var user *model.User
+	for i, videoDO := range videoDOList {
+		// 判断用户是否点赞本视频
+		if userId == -1 {
+			favorite = false
+		} else {
+			favorite = NewFavoriteService().IsLike(userId, int64(videoDO.ID))
+		}
+
+		// 获取视频发布者
+		if token == "" {
+			user = userService.ToUserVO(*userService.FindUserById(videoDO.UserId))
+		} else {
+			user, _ = userService.UserInfo(strconv.Itoa(int(videoDO.UserId)), token)
+		}
+
+		// 将视频转化为 VO 对象，并存入列表
+		videoVO := v.ToVideoVO(videoDO, *user, favorite)
+		videoVOList[i] = videoVO
+	}
+	return videoVOList
 }
