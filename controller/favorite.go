@@ -29,26 +29,20 @@ var favoriteService = service.NewFavoriteService()
 
 // FavoriteAction no practical effect, just check if token is valid
 func FavoriteAction(c *gin.Context) {
-	var p FavoriteQuery
-	err := c.ShouldBindQuery(&p)
+	var favoriteQuery FavoriteQuery
+	err := c.ShouldBindQuery(&favoriteQuery)
 	if err != nil {
 		c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "参数不合法"})
 		return
 	}
-	//userId := strconv.FormatInt(p.UserId, 10)
-	//_, err = userService.UserInfo(userId, p.Token)
-	//if err != nil {
-	//	c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "用户未登录！"})
-	//	return
-	//}
-	if user := db.Redis.Get(p.Token); user == nil {
+	if user := db.Redis.Get(favoriteQuery.Token); user == nil {
 		c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "用户未登录！"})
 		return
 	}
-	if p.ActionType == 1 {
-		favoriteService.DoLike(p.UserId, p.VideoId)
-	} else if p.ActionType == 2 {
-		favoriteService.CancelLike(p.UserId, p.VideoId)
+	if favoriteQuery.ActionType == 1 {
+		favoriteService.DoLike(favoriteQuery.UserId, favoriteQuery.VideoId)
+	} else if favoriteQuery.ActionType == 2 {
+		favoriteService.CancelLike(favoriteQuery.UserId, favoriteQuery.VideoId)
 	} else {
 		c.JSON(http.StatusBadRequest, model.Response{StatusCode: 400, StatusMsg: "未知错误"})
 	}
@@ -56,17 +50,17 @@ func FavoriteAction(c *gin.Context) {
 
 // FavoriteList all users have same favorite video list
 func FavoriteList(c *gin.Context) {
-	var p FavoriteListQuery
-	err := c.ShouldBindQuery(&p)
+	var favoriteListQuery FavoriteListQuery
+	err := c.ShouldBindQuery(&favoriteListQuery)
 	if err != nil {
 		c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "参数不合法"})
 		return
 	}
-	//if _, user := usersLoginInfo[p.Token]; !user {
-	//	c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "用户未登录！"})
-	//	return
-	//}
-	likeVideoList := favoriteService.GetLikeList(p.UserId)
+	if user := db.Redis.Get(favoriteListQuery.Token); user == nil {
+		c.JSON(http.StatusForbidden, model.Response{StatusCode: 403, StatusMsg: "用户未登录！"})
+		return
+	}
+	likeVideoList := favoriteService.GetLikeList(favoriteListQuery.UserId)
 	c.JSON(http.StatusOK, FavoriteListResponse{
 		Response: model.Response{
 			StatusCode: 200,
