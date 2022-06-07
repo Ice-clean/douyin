@@ -76,21 +76,11 @@ func (f *FavoriteService) GetLikeList(userId int64) []model.Video {
 	//将找到的视频id转换为视频列表
 	for id := range videoIdList {
 		fmt.Println(id)
-		//TODO 用id查video
-		// video := db.GetVideo(id.(int64))
-		video := model.Video{
-			Id:            uint(id),
-			Author:        model.User{},
-			PlayUrl:       "",
-			CoverUrl:      "",
-			FavoriteCount: 0,
-			CommentCount:  0,
-			IsFavorite:    false,
-		}
-		fmt.Println(video)
-		//var user model.User
-		//videoVo := model.Video{}
-		videoList = append(videoList, video)
+		video := NewVideoService().GetVideoById(int64(id))
+		user := NewUserService().FindUserById(userId)
+		userVo := NewUserService().ToUserVO(*user)
+		videoVo := NewVideoService().ToVideoVO(video, *userVo, true)
+		videoList = append(videoList, videoVo)
 	}
 	return videoList
 }
