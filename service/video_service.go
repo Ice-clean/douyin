@@ -89,9 +89,6 @@ func (v *VideoService) PublishVideo(user *model.User, title string, file *multip
 func (v *VideoService) GetPublishList(userId int64, token string) []model.Video {
 	// 获取视频列表，并准备转化成投稿列表
 	var videoList = videoDao.GetPublishByUserId(userId)
-	for i := range videoList {
-		fmt.Println("第", i, i)
-	}
 	// 将视频列表转化成响应对象再返回
 	return v.ToVideoVOList(videoList, userId, token)
 }

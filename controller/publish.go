@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"github.com/RaymondCode/simple-demo/dal/db"
 	"github.com/RaymondCode/simple-demo/model"
 	"github.com/RaymondCode/simple-demo/service"
 	"github.com/gin-gonic/gin"
@@ -29,13 +28,12 @@ func Publish(c *gin.Context) {
 	}
 
 	// 解析用户
-	userId := db.Redis.Get("douyin:" + token)
-	fmt.Printf("用户 Id：%v", userId)
-	//if userId == redis.Nil {
-	//	c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "用户不存在"})
-	//	return
-	//}
-	user, err := userService.UserInfo(userId.Val(), token)
+	userDO := userService.FindUserByToken(token)
+	if userDO == nil {
+		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "用户不存在"})
+		return
+	}
+	user := userService.ToUserVO(*userDO)
 
 	fmt.Printf("%v", user)
 	// 读取视频
