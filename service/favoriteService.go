@@ -25,6 +25,7 @@ func (f *FavoriteService) DoLike(userId int64, videoId int64) {
 	key := fmt.Sprintf("douyin:favorite:video%d:user%d", videoId, userId)
 	fmt.Println(key)
 	_, err := db.Redis.Set(key, 1, time.Minute*5).Result()
+	f.UpdateLike(videoId, 1)
 	if err != nil {
 		panic(err)
 	}
@@ -36,6 +37,7 @@ func (f *FavoriteService) CancelLike(userId int64, videoId int64) {
 	key := fmt.Sprintf("douyin:favorite:video%d:user%d", videoId, userId)
 	fmt.Println(key)
 	_, err := db.Redis.Set(key, 0, time.Minute*5).Result()
+	f.UpdateLike(videoId, 2)
 	if err != nil {
 		panic(err)
 	}
@@ -170,4 +172,14 @@ func (f *FavoriteService) GetLikeId(userId int64) []interface{} {
 	}
 	videoIdList := videoIdSet.ToSlice()
 	return videoIdList
+}
+
+func (f *FavoriteService) UpdateLike(videoId int64, likeType int) {
+	video := NewVideoService().GetVideoById(videoId)
+	if likeType == 1 {
+		video.FavoriteCount++
+	} else {
+		video.FavoriteCount--
+	}
+	db.DB.Save(video)
 }

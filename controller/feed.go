@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/RaymondCode/simple-demo/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -26,6 +27,7 @@ func Feed(c *gin.Context) {
 		videoList = videoService.GetRecommend(user.Id, token)
 	} else {
 		// 没有登录，则从所有视频中获取视频列表
+		fmt.Println("取得的IP：", c.ClientIP())
 		videoList = videoService.GetVideoList(c.ClientIP())
 	}
 
