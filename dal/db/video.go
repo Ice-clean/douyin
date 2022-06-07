@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -14,6 +13,7 @@ type Video struct {
 	Tag           string // 视频标签
 	FavoriteCount int64  // 点赞数量
 	CommentCount  int64  // 评论数量
+	Title         string // 视频标题
 }
 
 type VideoDao struct {
@@ -31,9 +31,7 @@ func (v *VideoDao) CreateVideo(video *Video) bool {
 // GetPublishByUserId 通过用户 ID 获取该用户发布的视频列表
 func (v *VideoDao) GetPublishByUserId(userId int64) []Video {
 	var videoList []Video
-	fmt.Println("前：", videoList)
 	DB.Where("user_id = ?", userId).Find(&videoList)
-	fmt.Println("后：", len(videoList))
 	return videoList
 }
 
@@ -46,6 +44,6 @@ func (v *VideoDao) GetVideoById(videoId int64) Video {
 // GetVideoList 分页获取视频列表
 func (v *VideoDao) GetVideoList(page, num int) []Video {
 	var videoList []Video
-	DB.Limit(num).Offset(page * num).Find(&videoList)
+	DB.Order("id DESC").Limit(num).Offset(page * num).Find(&videoList)
 	return videoList
 }

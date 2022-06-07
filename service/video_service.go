@@ -36,7 +36,6 @@ func (v VideoService) GetVideoList(userIP string) []model.Video {
 	page := 0
 	// 先从缓存中获取当前用户查看的视频页数（没有则默认 0）
 	pageString, err := Redis.HGet(constant.UserVideoPage, userIP).Result()
-	fmt.Println("拿到的值：", pageString)
 	if err == nil && pageString != "" {
 		page, _ = strconv.Atoi(pageString)
 	}
@@ -49,7 +48,7 @@ func (v VideoService) GetVideoList(userIP string) []model.Video {
 	} else {
 		// 没有的话，page 归 0，循环播放
 		Redis.HSet(constant.UserVideoPage, userIP, 0)
-		videoList = videoDao.GetVideoList(page, 10)
+		videoList = videoDao.GetVideoList(0, 10)
 	}
 	// 转化为响应对象然后返回
 	return v.ToVideoVOList(videoList, -1, "")
@@ -71,14 +70,15 @@ func (v *VideoService) PublishVideo(user *model.User, title string, file *multip
 	}
 
 	// 生成缩略图并保存到服务器
-	snapshotName := utils.GetSnapshot(saveFile, filepath.Join("./public/", finalName), 50)
+	utils.GetSnapshot(saveFile, filepath.Join("./public/", finalName), 50)
 
 	// 封装视频对象
 	video := &db.Video{}
 	video.UserId = user.Id
 	video.Tag = v.parseTag(title)
 	video.PlayUrl = fmt.Sprintf("%s/%s/%s", constant.Host, "static", finalName)
-	video.CoverUrl = fmt.Sprintf("%s/%s/%s", constant.Host, "static", snapshotName)
+	video.CoverUrl = fmt.Sprintf("%s/%s/%s.jpeg", constant.Host, "static", finalName)
+	video.Title = title
 
 	// 将视频信息保存到数据库
 	videoDao.CreateVideo(video)
@@ -126,6 +126,7 @@ func (v *VideoService) ToVideoVO(videoDO db.Video, author model.User, favorite b
 		FavoriteCount: videoDO.FavoriteCount,
 		CommentCount:  videoDO.CommentCount,
 		IsFavorite:    favorite,
+		Title:         videoDO.Title,
 	}
 }
 
