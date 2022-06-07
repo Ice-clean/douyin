@@ -71,12 +71,10 @@ func (f *FavoriteService) IsLike(userId int64, videoId int64) bool {
 // GetLikeList 获取用户喜欢的视频列表
 func (f *FavoriteService) GetLikeList(userId int64) []model.Video {
 	videoIdList := f.GetLikeId(userId)
-	var videoList = make([]model.Video, len(videoIdList))
-
+	var videoList = make([]model.Video, 0)
 	//将找到的视频id转换为视频列表
-	for id := range videoIdList {
-		fmt.Println(id)
-		video := NewVideoService().GetVideoById(int64(id))
+	for _, id := range videoIdList {
+		video := NewVideoService().GetVideoById(id.(int64))
 		user := NewUserService().FindUserById(video.UserId)
 		userVo := NewUserService().ToUserVO(*user)
 		videoVo := NewVideoService().ToVideoVO(video, *userVo, true)
@@ -93,7 +91,7 @@ func (f *FavoriteService) Recommend(userId int64) []db.Video {
 	type APIVideo struct {
 		Tag string
 	}
-	var apiVideos = make([]APIVideo, len(videoList))
+	var apiVideos = make([]APIVideo, 0)
 	var TagCount = make(map[string]int)
 	db.DB.Model(&db.Video{}).Find(&apiVideos, videoIdList)
 	compile := regexp.MustCompile(`[\p{Han}]+`)
