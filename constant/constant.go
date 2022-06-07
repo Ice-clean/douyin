@@ -1,7 +1,7 @@
 package constant
 
 const (
-	HostIceClean  = "39.98.41.126:31101"
+	HostIceClean  = "http://tx.iceclean.top"
 	Host          = HostIceClean
 	UserVideoPage = "douyin:video:page"
 )
