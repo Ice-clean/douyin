@@ -77,7 +77,7 @@ func (f *FavoriteService) GetLikeList(userId int64) []model.Video {
 	for id := range videoIdList {
 		fmt.Println(id)
 		video := NewVideoService().GetVideoById(int64(id))
-		user := NewUserService().FindUserById(userId)
+		user := NewUserService().FindUserById(video.UserId)
 		userVo := NewUserService().ToUserVO(*user)
 		videoVo := NewVideoService().ToVideoVO(video, *userVo, true)
 		videoList = append(videoList, videoVo)
