@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/RaymondCode/simple-demo/constant"
 	"github.com/RaymondCode/simple-demo/dal/db"
 	"github.com/RaymondCode/simple-demo/model"
 	"github.com/RaymondCode/simple-demo/utils"
@@ -89,8 +90,8 @@ func (u *UserService) UserInfo(userId string, token string) (user *model.User, e
 			Signature:       ownUserDb.PersonalSignature,
 			TotalFavorited:  u.FindTotalFavoritedByUserId(userIdInt), //总获赞数
 			FavoriteCount:   u.FindFavoriteCountByUserId(userIdInt),  //点赞作品数
-			Avatar:          "http://10.0.2.2:8081/images/1.jpeg",
-			BackgroundImage: "http://10.0.2.2:8081/images/3.jpeg",
+			Avatar:          constant.UserHost + "/images/1.jpeg",
+			BackgroundImage: constant.UserHost + "/images/3.jpeg",
 		}
 	} else { //查看其它用户
 		isFollow := userDao.JudgeFollow(ownUserDb.Id, userIdInt) //判断是否关注了该用户,true关注，false未关注
@@ -104,8 +105,8 @@ func (u *UserService) UserInfo(userId string, token string) (user *model.User, e
 			Signature:       otherUserDb.PersonalSignature,
 			TotalFavorited:  u.FindTotalFavoritedByUserId(userIdInt), //总获赞数
 			FavoriteCount:   u.FindFavoriteCountByUserId(userIdInt),  //点赞作品数
-			Avatar:          "http://10.0.2.2:8081/images/1.jpeg",
-			BackgroundImage: "http://10.0.2.2:8081/images/3.jpeg",
+			Avatar:          constant.UserHost + "/images/1.jpeg",
+			BackgroundImage: constant.UserHost + "/images/3.jpeg",
 		}
 	}
 	return
@@ -188,10 +189,9 @@ func (u *UserService) FindUserModelById(userId int64, token string) (user *model
 		Signature:     userDB.PersonalSignature,
 		//TotalFavorited:  u.FindTotalFavoritedByUserId(userIdInt), //总获赞数,这里不需要
 		//FavoriteCount:   u.FindFavoriteCountByUserId(userIdInt),  //点赞作品数，这里不需要
-		Avatar:          "http://10.0.2.2:8081/images/1.jpeg",
-		BackgroundImage: "http://10.0.2.2:8081/images/3.jpeg",
+		Avatar:          constant.UserHost + "/images/1.jpeg",
+		BackgroundImage: constant.UserHost + "/images/3.jpeg",
 	}
-
 	return user, err
 }
 
@@ -202,12 +202,15 @@ func (u *UserService) ToUserVO(userDO db.User) *model.User {
 	userFollowCount, _ = userDao.FindCountByID(userDO.Id)
 
 	return &model.User{
-		Id:             userDO.Id,
-		Name:           userDO.Username, //这里先暂且使用 Username
-		FollowCount:    userFollowCount.FollowCount,
-		FollowerCount:  userFollowCount.FollowerCount,
-		Signature:      userDO.PersonalSignature,
-		TotalFavorited: 66,
-		FavoriteCount:  88,
+		Id:            userDO.Id,
+		Name:          userDO.Username,
+		FollowCount:   userFollowCount.FollowCount,
+		FollowerCount: userFollowCount.FollowerCount,
+		Signature:     userDO.PersonalSignature,
+		//TotalFavorited: 66,  //不需要
+		//FavoriteCount:  88,  //不需要
+		Avatar:          constant.UserHost + "/images/1.jpeg",
+		BackgroundImage: constant.UserHost + "/images/3.jpeg",
 	}
+
 }
