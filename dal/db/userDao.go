@@ -123,54 +123,6 @@ func (u *UserDao) JudgeFollow(followUserId int64, followedUserId int64) bool {
 	return true //关注了该用户
 }
 
-// FindTotalFavoritedByUserId 根据id查找用户的总获赞数
-func (u *UserDao) FindTotalFavoritedByUserId(userId int64) int64 {
-	var count int64
-	DB.Raw("SELECT COUNT(*) AS count FROM favorite WHERE video_id in "+
-		"(SELECT id FROM video WHERE user_id = ?)", userId).Take(&count)
-	return count
-}
-
-// FindFavoriteCountByUserId  根据id查找用户的点赞作品总数
-func (u *UserDao) FindFavoriteCountByUserId(userId int64) int64 {
-	var count int64
-	DB.Raw("SELECT COUNT(*) AS count FROM favorite WHERE user_id = ?", userId).Take(&count)
-	return count
-}
-
-//关注操作
-func (u *UserDao) UserFollow(userId int64, toUserId int64) (err error) {
-	userFollow := UserFollow{
-		FollowUserId:   userId,
-		FollowedUserId: toUserId,
-	}
-	return DB.Create(&userFollow).Error
-}
-
-//取消关注操作
-func (u *UserDao) UserCancelFollow(userId int64, toUserId int64) (err error) {
-	return DB.Where("follow_user_id = ? AND followed_user_id = ?", userId, toUserId).Delete(UserFollow{}).Error
-}
-func (u *UserDao) FindFollow(userId int64, toUserId int64) UserFollow {
-	var userFollow UserFollow
-	DB.Where("follow_user_id = ? AND followed_user_id = ?", userId, toUserId).Find(&userFollow)
-	return userFollow
-}
-
-//获取关注列表
-func (u *UserDao) FindUserFollow(userId int64) []UserFollow {
-	var userFollows []UserFollow
-	DB.Where("follow_user_id = ?", userId).Find(&userFollows)
-	return userFollows
-}
-
-//获取粉丝列表
-func (u *UserDao) FindUserFollower(userId int64) []UserFollow {
-	var userFollows []UserFollow
-	DB.Where("followed_user_id = ?", userId).Find(&userFollows)
-	return userFollows
-}
-
 // UpdateLastLoginTime 更新用户最后一次的登录时间
 func (u *UserDao) UpdateLastLoginTime(id int64) (err error) {
 	err = DB.Model(&User{}).Where("id = ?", id).Update("last_login", time.Now().UnixMilli()).Error

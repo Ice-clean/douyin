@@ -14,29 +14,67 @@ func NewFollowService() *FollowService {
 	return &FollowService{}
 }
 
+var userFollowDao = db.NewUserFollowDao()
+
 // DoFollow 关注
 func (f *FollowService) DoFollow(userId int64, toUserId int64) (err error) {
 	key := fmt.Sprintf("douyin:follow:toUser%d:user%d", toUserId, userId)
 	fmt.Println(key)
-	var userFollow = userDao.FindFollow(userId, toUserId)
+	var userFollow = userFollowDao.FindFollow(userId, toUserId)
 	if userFollow.Id > 0 {
 		return err
 	}
-	return userDao.UserFollow(userId, toUserId)
+	err = userFollowDao.UserFollow(userId, toUserId)
+	if err != nil {
+		return err
+	}
+	var userFollowCount *db.UserFollowCount
+	userFollowCount, err = userDao.FindCountByID(userId)
+	if err != nil {
+		return err
+	}
+	fmt.Sprintf("asdasd")
+	userFollowCount.FollowCount = userFollowCount.FollowCount + 1
+	userFollowDao.UserFollowCount(userFollowCount)
+	userFollowCount, err = userDao.FindCountByID(toUserId)
+	if err != nil {
+		return err
+	}
+	fmt.Sprintf("as123123123dasd")
+	userFollowCount.FollowerCount = userFollowCount.FollowerCount + 1
+	userFollowDao.UserFollowCount(userFollowCount)
+	return err
 }
 
 // CancelLike 取消关注
 func (f *FollowService) CancelFollow(userId int64, toUserId int64) (err error) {
 	key := fmt.Sprintf("douyin:follow:toUser%d:user%d", toUserId, userId)
 	fmt.Println(key)
-	return userDao.UserCancelFollow(userId, toUserId)
+	err = userFollowDao.UserCancelFollow(userId, toUserId)
+	if err != nil {
+		return err
+	}
+	var userFollowCount *db.UserFollowCount
+	userFollowCount, err = userDao.FindCountByID(userId)
+	if err != nil {
+		return err
+	}
+	userFollowCount.FollowCount = userFollowCount.FollowCount - 1
+	userFollowDao.UserFollowCount(userFollowCount)
+	userFollowCount, err = userDao.FindCountByID(toUserId)
+	if err != nil {
+		return err
+	}
+	userFollowCount.FollowerCount = userFollowCount.FollowerCount - 1
+	userFollowDao.UserFollowCount(userFollowCount)
+	return err
 }
 
 // GetFollowList 获取关注列表
 func (f *FollowService) GetFollowList(userId int64) []model.User {
 	key := fmt.Sprintf("douyin:follow:user%d", userId)
 	fmt.Println(key)
-	var userFollows = userDao.FindUserFollow(userId)
+	var userFollows = userFollowDao.FindUserFollow(userId)
 	var userList = make([]model.User, len(userFollows))
 	for count := range userFollows {
 		var userFollow = userFollows[count]
@@ -46,8 +84,8 @@ func (f *FollowService) GetFollowList(userId int64) []model.User {
 		userInfo, _ = userDao.FindUserByID(userFollow.FollowedUserId)
 		user.Id = userInfo.Id
 		user.Name = userInfo.Name
-		user.FollowCount = int64(len(userDao.FindUserFollow(userInfo.Id)))
-		user.FollowerCount = int64(len(userDao.FindUserFollower(userInfo.Id)))
+		user.FollowCount = int64(len(userFollowDao.FindUserFollow(userInfo.Id)))
+		user.FollowerCount = int64(len(userFollowDao.FindUserFollower(userInfo.Id)))
 		user.IsFollow = true
 		userList[count] = *user
 	}
@@ -58,7 +96,7 @@ func (f *FollowService) GetFollowList(userId int64) []model.User {
 func (f *FollowService) GetFollowerList(userId int64) []model.User {
 	key := fmt.Sprintf("douyin:follow:user%d", userId)
 	fmt.Println(key)
-	var userFollowers = userDao.FindUserFollower(userId)
+	var userFollowers = userFollowDao.FindUserFollower(userId)
 	var userList = make([]model.User, len(userFollowers))
 	for count := range userFollowers {
 		var userFollower = userFollowers[count]
@@ -68,8 +106,8 @@ func (f *FollowService) GetFollowerList(userId int64) []model.User {
 		userInfo, _ = userDao.FindUserByID(userFollower.FollowUserId)
 		user.Id = userInfo.Id
 		user.Name = userInfo.Name
-		user.FollowCount = int64(len(userDao.FindUserFollow(userInfo.Id)))
-		user.FollowerCount = int64(len(userDao.FindUserFollower(userInfo.Id)))
+		user.FollowCount = int64(len(userFollowDao.FindUserFollow(userInfo.Id)))
+		user.FollowerCount = int64(len(userFollowDao.FindUserFollower(userInfo.Id)))
 		user.IsFollow = userDao.JudgeFollow(userId, userInfo.Id)
 		userList[count] = *user
 	}

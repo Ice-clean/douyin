@@ -13,17 +13,6 @@ type UserListResponse struct {
 	model.Response
 	UserList []model.User `json:"user_list"`
 }
-type FollowQuery struct {
-	UserId     int64  `json:"user_id" binding:"required"`
-	Token      string `json:"token" binding:"required"`
-	ToUserId   int64  `json:"to_user_id" binding:"required"`
-	ActionType int    `json:"action_type" binding:"required"`
-}
-
-type FollowListQuery struct {
-	UserId int64  `json:"user_id" binding:"required"`
-	Token  string `json:"token" binding:"required"`
-}
 
 type FollowListResponse struct {
 	model.Response
@@ -34,18 +23,19 @@ var followService = service.NewFollowService()
 
 // RelationAction no practical effect, just check if token is valid
 func RelationAction(c *gin.Context) {
-	p := FollowQuery{}
-	c.BindJSON(&p)
 
-	if p.ActionType == 1 {
-		err := followService.DoFollow(p.UserId, p.ToUserId)
+	var userId, _ = strconv.ParseInt(c.Query("user_id"), 10, 64)
+	var toUserId, _ = strconv.ParseInt(c.Query("to_user_id"), 10, 64)
+	var actionType, _ = strconv.ParseInt(c.Query("action_type"), 10, 64)
+	if actionType == 1 {
+		err := followService.DoFollow(userId, toUserId)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, model.Response{StatusCode: 400, StatusMsg: "未知错误"})
 		} else {
 			c.JSON(http.StatusOK, model.Response{StatusCode: 200, StatusMsg: "关注成功"})
 		}
-	} else if p.ActionType == 2 {
-		err := followService.CancelFollow(p.UserId, p.ToUserId)
+	} else if actionType == 2 {
+		err := followService.CancelFollow(userId, toUserId)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, model.Response{StatusCode: 400, StatusMsg: "未知错误"})
 		} else {
