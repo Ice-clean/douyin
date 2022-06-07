@@ -38,10 +38,10 @@ func FavoriteAction(c *gin.Context) {
 	loginUser := service.NewUserService().FindUserByToken(token)
 	if actionType == 1 {
 		favoriteService.DoLike(loginUser.Id, videoId)
-		c.JSON(http.StatusOK, model.Response{StatusCode: 200, StatusMsg: "点赞成功"})
+		c.JSON(http.StatusOK, model.Response{StatusCode: 0, StatusMsg: "点赞成功"})
 	} else if actionType == 2 {
 		favoriteService.CancelLike(loginUser.Id, videoId)
-		c.JSON(http.StatusOK, model.Response{StatusCode: 200, StatusMsg: "取消点赞成功"})
+		c.JSON(http.StatusOK, model.Response{StatusCode: 0, StatusMsg: "取消点赞成功"})
 	} else {
 		c.JSON(http.StatusBadRequest, model.Response{StatusCode: 400, StatusMsg: "未知错误"})
 	}

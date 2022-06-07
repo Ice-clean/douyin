@@ -144,7 +144,7 @@ func (v *VideoService) ToVideoVOList(videoDOList []db.Video, userId int64, token
 		} else {
 			favorite = NewFavoriteService().IsLike(userId, int64(videoDO.ID))
 		}
-
+		fmt.Println("视频：", videoDO.ID, "用户：", userId, "是否点赞？:", favorite)
 		// 获取视频发布者
 		if token == "" {
 			user = userService.ToUserVO(*userService.FindUserById(videoDO.UserId))
