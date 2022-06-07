@@ -131,3 +131,18 @@ func (u *UserDao) UpdateLastLoginTime(id int64) (err error) {
 	}
 	return //更新成功
 }
+
+// FindTotalFavoritedByUserId 根据id查找用户的总获赞数
+func (u *UserDao) FindTotalFavoritedByUserId(userId int64) int64 {
+	var count int64
+	DB.Raw("SELECT COUNT(*) AS count FROM favorite WHERE video_id in "+
+		"(SELECT id FROM video WHERE user_id = ?)", userId).Take(&count)
+	return count
+}
+
+// FindFavoriteCountByUserId  根据id查找用户的点赞作品总数
+func (u *UserDao) FindFavoriteCountByUserId(userId int64) int64 {
+	var count int64
+	DB.Raw("SELECT COUNT(*) AS count FROM favorite WHERE user_id = ?", userId).Take(&count)
+	return count
+}
