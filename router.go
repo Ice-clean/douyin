@@ -9,6 +9,7 @@ import (
 func initRouter(r *gin.Engine) {
 	// public directory is used to serve images resources
 	r.Static("/images", "./public/images")
+	r.Static("/static", "./public")
 
 	r.Use(gin.Logger()) // 日志
 
