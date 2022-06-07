@@ -35,6 +35,9 @@ func (u *UserService) Register(username string, password string) (userId int64, 
 	}
 	fmt.Println("registerUser: ", *user) //打印日志
 
+	//创建对应的用户角色关系
+	_ = authDao.CreateUserRole(user.Id, 1)
+
 	//生成token
 	token, err = utils.GenerateToken(user.Id, username)
 
@@ -70,14 +73,8 @@ func (u *UserService) Login(username string, password string) (userId int64, tok
 func (u *UserService) UserInfo(userId string, token string) (user *model.User, err error) {
 	var userIdInt int64
 	userIdInt, err = strconv.ParseInt(userId, 10, 64)
-	//解析token
-	//var claims *utils.Claims
-	//claims, err = utils.ParseToken(token)
-	//if err != nil { //解析失败，直接返回
-	//	return nil, err
-	//}
+
 	ownUserDb := u.FindUserByToken(token) //根据token查找登录用户信息
-	//user = new(model.User)
 
 	//根据id查找用户的关注量与粉丝量
 	var userFollowCount *db.UserFollowCount
@@ -85,26 +82,30 @@ func (u *UserService) UserInfo(userId string, token string) (user *model.User, e
 
 	if userIdInt == ownUserDb.Id { //查找用户为自己
 		user = &model.User{
-			Id:             userIdInt,
-			Name:           ownUserDb.Username, //这里先暂且使用 Username
-			FollowCount:    userFollowCount.FollowCount,
-			FollowerCount:  userFollowCount.FollowerCount,
-			Signature:      ownUserDb.PersonalSignature,
-			TotalFavorited: 66,
-			FavoriteCount:  88,
+			Id:              userIdInt,
+			Name:            ownUserDb.Username, //这里先暂且使用 Username
+			FollowCount:     userFollowCount.FollowCount,
+			FollowerCount:   userFollowCount.FollowerCount,
+			Signature:       ownUserDb.PersonalSignature,
+			TotalFavorited:  u.FindTotalFavoritedByUserId(userIdInt), //总获赞数
+			FavoriteCount:   u.FindFavoriteCountByUserId(userIdInt),  //点赞作品数
+			Avatar:          "http://10.0.2.2:8081/images/1.jpeg",
+			BackgroundImage: "http://10.0.2.2:8081/images/3.jpeg",
 		}
 	} else { //查看其它用户
 		isFollow := userDao.JudgeFollow(ownUserDb.Id, userIdInt) //判断是否关注了该用户,true关注，false未关注
 		otherUserDb := u.FindUserById(userIdInt)                 //根据id查找 查看的用户信息
 		user = &model.User{
-			Id:             userIdInt,
-			Name:           otherUserDb.Username, //这里先暂且使用 Username
-			FollowCount:    userFollowCount.FollowCount,
-			FollowerCount:  userFollowCount.FollowerCount,
-			IsFollow:       isFollow,
-			Signature:      otherUserDb.PersonalSignature,
-			TotalFavorited: 666,
-			FavoriteCount:  888,
+			Id:              userIdInt,
+			Name:            otherUserDb.Username, //这里先暂且使用 Username
+			FollowCount:     userFollowCount.FollowCount,
+			FollowerCount:   userFollowCount.FollowerCount,
+			IsFollow:        isFollow,
+			Signature:       otherUserDb.PersonalSignature,
+			TotalFavorited:  u.FindTotalFavoritedByUserId(userIdInt), //总获赞数
+			FavoriteCount:   u.FindFavoriteCountByUserId(userIdInt),  //点赞作品数
+			Avatar:          "http://10.0.2.2:8081/images/1.jpeg",
+			BackgroundImage: "http://10.0.2.2:8081/images/3.jpeg",
 		}
 	}
 	return
@@ -140,12 +141,12 @@ func (u *UserService) FindUserByToken(token string) *db.User {
 
 // FindTotalFavoritedByUserId 根据id查找用户的总获赞数
 func (u *UserService) FindTotalFavoritedByUserId(userId int64) int64 {
-	return userId //未实现！！！！！！
+	return userDao.FindTotalFavoritedByUserId(userId)
 }
 
 // FindFavoriteCountByUserId  根据id查找用户的点赞作品总数
 func (u *UserService) FindFavoriteCountByUserId(userId int64) int64 {
-	return userId //未实现！！！！！！
+	return userDao.FindFavoriteCountByUserId(userId)
 }
 
 // Logout 退出登录（客户端无对应接口）
@@ -159,19 +160,37 @@ func (u *UserService) IsUsernameCanUse(username string) bool {
 	return userDao.FindUserByUsername(username)
 }
 
-// ToUserVO 将 user DO 对象转化为 VO 对象
-func (u *UserService) ToUserVO(userDO db.User) *model.User {
-	//根据id查找用户的关注量与粉丝量
-	var userFollowCount *db.UserFollowCount
-	userFollowCount, _ = userDao.FindCountByID(userDO.Id)
-
-	return &model.User{
-		Id:             userDO.Id,
-		Name:           userDO.Username, //这里先暂且使用 Username
-		FollowCount:    userFollowCount.FollowCount,
-		FollowerCount:  userFollowCount.FollowerCount,
-		Signature:      userDO.PersonalSignature,
-		TotalFavorited: 66,
-		FavoriteCount:  88,
+// FindUserModelById 通用型接口，根据 userId 获取用户model的信息
+func (u *UserService) FindUserModelById(userId int64, token string) (user *model.User, err error) {
+	//解析token
+	var claims *utils.Claims
+	claims, err = utils.ParseToken(token)
+	if err != nil { //解析失败，直接返回
+		fmt.Println("token parse failed...")
+		return nil, err
 	}
+
+	//根据id查找用户的关注量与粉丝量
+	userFollowCount, _ := userDao.FindCountByID(userId)
+
+	//判断是否关注了该用户,true关注，false未关注
+	isFollow := userDao.JudgeFollow(claims.Id, userId)
+
+	//根据 id 从数据库中查找用户信息
+	userDB := u.FindUserById(userId)
+
+	user = &model.User{
+		Id:            userId,
+		Name:          userDB.Username,
+		FollowCount:   userFollowCount.FollowCount,
+		FollowerCount: userFollowCount.FollowerCount,
+		IsFollow:      isFollow,
+		Signature:     userDB.PersonalSignature,
+		//TotalFavorited:  u.FindTotalFavoritedByUserId(userIdInt), //总获赞数,这里不需要
+		//FavoriteCount:   u.FindFavoriteCountByUserId(userIdInt),  //点赞作品数，这里不需要
+		Avatar:          "http://10.0.2.2:8081/images/1.jpeg",
+		BackgroundImage: "http://10.0.2.2:8081/images/3.jpeg",
+	}
+
+	return user, err
 }

@@ -45,3 +45,13 @@ func (a *AuthDao) FindPermissionByUserIdAndUri(userId int64, uri string) bool {
 	}
 	return true
 }
+
+// CreateUserRole 创建对应的用户角色关系
+func (a *AuthDao) CreateUserRole(userId int64, roleId int64) error {
+	userRole := UserRole{
+		UserId: userId,
+		RoleId: roleId,
+	}
+	err := DB.Create(&userRole).Error
+	return err
+}

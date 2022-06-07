@@ -7,8 +7,8 @@ import (
 )
 
 func initRouter(r *gin.Engine) {
-	// public directory is used to serve static resources
-	r.Static("/static", "./public")
+	// public directory is used to serve images resources
+	r.Static("/images", "./public/images")
 
 	r.Use(gin.Logger()) // 日志
 

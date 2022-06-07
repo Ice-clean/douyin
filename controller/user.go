@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/RaymondCode/simple-demo/model"
 	"github.com/RaymondCode/simple-demo/service"
 	"github.com/gin-gonic/gin"
@@ -134,6 +135,8 @@ func Login(c *gin.Context) {
 func UserInfo(c *gin.Context) {
 	token := c.Query("token")
 	userId := c.Query("user_id")
+
+	fmt.Println("请求的路径为：", c.Request.URL.Path)
 
 	user, err := userService.UserInfo(userId, token)
 	if err != nil || user == nil { //查询不到用户
