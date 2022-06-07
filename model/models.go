@@ -6,8 +6,13 @@ type Response struct {
 	StatusMsg  string `json:"status_msg,omitempty"`
 }
 
+type VideoListResponse struct {
+	Response
+	VideoList []Video `json:"video_list"`
+}
+
 type Video struct {
-	Id            int64  `json:"id,omitempty"`
+	Id            uint   `json:"id,omitempty"`
 	Author        User   `json:"author"`
 	PlayUrl       string `json:"play_url" json:"play_url,omitempty"`
 	CoverUrl      string `json:"cover_url,omitempty"`

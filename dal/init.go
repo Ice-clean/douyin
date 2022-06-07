@@ -3,8 +3,12 @@
 // sql 层存放表创建语句
 package dal
 
-import "github.com/RaymondCode/simple-demo/dal/db"
+import (
+	"github.com/RaymondCode/simple-demo/dal/cache"
+	"github.com/RaymondCode/simple-demo/dal/db"
+)
 
 func init() {
 	db.Init()
+	cache.Init()
 }

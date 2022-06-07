@@ -1,66 +1,83 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/RaymondCode/simple-demo/model"
 	"github.com/RaymondCode/simple-demo/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
-
-type VideoListResponse struct {
-	model.Response
-	VideoList []model.Video `json:"video_list"`
-}
 
 // 注入服务
 var videoService = service.NewVideoService()
 
-//Publish check token then save upload file to public directory
-//获取参数，调用 service 层处理
+// Publish check token then save upload file to public directory
+// 获取参数，调用 service 层处理
 func Publish(c *gin.Context) {
-	//// 读取表单数据
-	//token := c.Query("token")
-	//fmt.Println("携带的 token：" + token)
-	//
-	////token = c.PostForm("token")
-	////fmt.Println("POST 的 token：", token)
-	//if _, exist := usersLoginInfo[token]; !exist {
-	//	c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-	//	return
-	//}
-	//
-	//data, err := c.FormFile("data")
-	//if err != nil {
-	//	c.JSON(http.StatusOK, model.Response{
-	//		StatusCode: 1,
-	//		StatusMsg:  err.Error(),
-	//	})
-	//	return
-	//}
-	//
-	//// 调用服务
-	//user := usersLoginInfo[token]
-	//finalName, err := videoService.PublishVideo(user, data, c)
-	//if err != nil {
-	//	c.JSON(http.StatusOK, model.Response{
-	//		StatusCode: 1,
-	//		StatusMsg:  err.Error(),
-	//	})
-	//}
-	//
-	//// 返回上传成功
-	//c.JSON(http.StatusOK, model.Response{
-	//	StatusCode: 0,
-	//	StatusMsg:  finalName + " uploaded successfully",
-	//})
+	// 获取标题和 token
+	token := c.PostForm("token")
+	title := c.PostForm("title")
+	if token == "" {
+		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "没有 token"})
+		return
+	}
+	if title == "" {
+		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "没有 title"})
+		return
+	}
+
+	// 解析用户
+	userDO := userService.FindUserByToken(token)
+	if userDO == nil {
+		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "用户不存在"})
+		return
+	}
+	user := userService.ToUserVO(*userDO)
+
+	fmt.Printf("%v", user)
+	// 读取视频
+	data, err := c.FormFile("data")
+	if err != nil {
+		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: err.Error()})
+		return
+	}
+
+	// 调用投稿服务
+	finalName, err := videoService.PublishVideo(user, title, data)
+	if err != nil {
+		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: err.Error()})
+		return
+	}
+
+	// 返回上传成功
+	c.JSON(http.StatusOK, model.Response{
+		StatusCode: 0,
+		StatusMsg:  finalName + "上传成功",
+	})
 }
 
 // PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
-	c.JSON(http.StatusOK, VideoListResponse{
+	// 获取用户 ID 和 token
+	userId := c.Query("user_id")
+	token := c.Query("token")
+
+	if token == "" {
+		c.JSON(http.StatusOK, model.Response{StatusCode: 1, StatusMsg: "没有 token"})
+		return
+	}
+
+	// 调用获取投稿服务
+	id, _ := strconv.Atoi(userId)
+	videoList := videoService.GetPublishList(int64(id), token)
+
+	fmt.Println("进来到列表了")
+	fmt.Printf("%+v", videoList)
+	c.JSON(http.StatusOK, model.VideoListResponse{
 		Response: model.Response{
 			StatusCode: 0,
 		},
-		VideoList: DemoVideos,
+		VideoList: videoList,
 	})
 }

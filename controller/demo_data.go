@@ -1,27 +1,28 @@
 package controller
 
-import "github.com/RaymondCode/simple-demo/model"
+import (
+	"github.com/RaymondCode/simple-demo/constant"
+	"github.com/RaymondCode/simple-demo/model"
+)
 
 var DemoVideos = []model.Video{
 	{
-		Id:     1,
-		Author: DemoUser,
-		//PlayUrl: "https://www.w3schools.com/html/movie.mp4",
-		PlayUrl: "http://39.98.41.126:31101/static/test.mp4",
-		//CoverUrl:      "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg",
-		CoverUrl: "http://39.98.41.126:31101/static/map1.jpg", FavoriteCount: 0,
-		CommentCount: 0,
-		IsFavorite:   false,
+		Id:            2,
+		Author:        DemoUser,
+		PlayUrl:       constant.Host + "/static/1_1_bear.mp4",
+		CoverUrl:      constant.Host + "/static/1_1_bear.mp4.jpeg",
+		FavoriteCount: 0,
+		CommentCount:  0,
+		IsFavorite:    false,
 	},
 	{
-		Id:     2,
-		Author: DemoUser,
-		//PlayUrl: "https://www.w3schools.com/html/movie.mp4",
-		PlayUrl: "http://39.98.41.126:31101/static/1_bear.mp4",
-		//CoverUrl:      "https://cdn.pixabay.com/photo/2016/03/27/18/10/bear-1283347_1280.jpg",
-		CoverUrl: "http://39.98.41.126:31101/static/map1.jpg", FavoriteCount: 0,
-		CommentCount: 0,
-		IsFavorite:   false,
+		Id:            1,
+		Author:        DemoUser,
+		PlayUrl:       "http://39.98.41.126:31101/static/1_多屏协同.mp4",
+		CoverUrl:      constant.Host + "/static/1_多屏协同.mp4.jpeg",
+		FavoriteCount: 0,
+		CommentCount:  0,
+		IsFavorite:    false,
 	},
 }
 
